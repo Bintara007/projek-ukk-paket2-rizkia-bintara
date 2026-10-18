@@ -1,50 +1,261 @@
 <?php
-// Memanggil file koneksi ke database
+session_start();
 include '../koneksi.php';
 
-// Memeriksa apakah tombol 'submit' pada form sudah ditekan
-if (isset($_POST['submit'])) {
-    // Mengambil nilai input dari form HTML
-    $jenis_kendaraan = $_POST['jenis_kendaraan'];
-    $tarif_per_jam   = $_POST['tarif_per_jam'];
+if (!isset($_SESSION['id_user'])) {
+    header("Location: ../login.php");
+    exit;
+}
 
-    // Query SQL untuk memasukkan data tarif baru ke tabel tb_tarif
-    $query = "INSERT INTO tb_tarif (jenis_kendaraan, tarif_per_jam) VALUES ('$jenis_kendaraan', '$tarif_per_jam')";
-    
-    // Eksekusi query ke database
-    if (mysqli_query($koneksi, $query)) {
-        // Jika berhasil, alihkan halaman kembali ke index_tarif.php
-        header("Location: tampil_tarif.php");
-        exit;
-    } else {
-        // Jika gagal, tampilkan pesan error
-        echo "Gagal menambahkan data: " . mysqli_error($koneksi);
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header("Location: ../login.php");
+    exit;
+}
+
+$id_user_login = (int) $_SESSION['id_user'];
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $jenis_kendaraan = trim($_POST['jenis_kendaraan'] ?? '');
+    $tarif_per_jam = (int) ($_POST['tarif_per_jam'] ?? 0);
+
+    $jenis_valid = [
+        'motor',
+        'mobil',
+        'mini bus',
+        'bus'
+    ];
+
+    if (!in_array($jenis_kendaraan, $jenis_valid, true)) {
+        $error = 'Jenis kendaraan tidak valid.';
+    }
+
+    if ($error === '' && $tarif_per_jam <= 0) {
+        $error = 'Tarif per jam harus lebih dari 0.';
+    }
+
+    /* Cek tarif kendaraan */
+
+    if ($error === '') {
+
+        $stmt = mysqli_prepare(
+            $koneksi,
+            "SELECT id_tarif
+             FROM tb_tarif
+             WHERE jenis_kendaraan = ?
+             LIMIT 1"
+        );
+
+        mysqli_stmt_bind_param(
+            $stmt,
+            "s",
+            $jenis_kendaraan
+        );
+
+        mysqli_stmt_execute($stmt);
+
+        $result = mysqli_stmt_get_result($stmt);
+
+        if (mysqli_num_rows($result) > 0) {
+            $error = 'Tarif untuk jenis kendaraan tersebut sudah ada.';
+        }
+
+        mysqli_stmt_close($stmt);
+    }
+
+    if ($error === '') {
+
+        $stmt = mysqli_prepare(
+            $koneksi,
+            "INSERT INTO tb_tarif
+            (
+                jenis_kendaraan,
+                tarif_per_jam
+            )
+            VALUES (?, ?)"
+        );
+
+        mysqli_stmt_bind_param(
+            $stmt,
+            "si",
+            $jenis_kendaraan,
+            $tarif_per_jam
+        );
+
+        if (mysqli_stmt_execute($stmt)) {
+
+            $aktivitas =
+                "Menambahkan tarif kendaraan: " .
+                $jenis_kendaraan .
+                " - Rp " .
+                number_format($tarif_per_jam, 0, ',', '.');
+
+            $stmt_log = mysqli_prepare(
+                $koneksi,
+                "INSERT INTO tb_log_aktivitas
+                (id_user, aktivitas, waktu_aktivitas)
+                VALUES (?, ?, NOW())"
+            );
+
+            mysqli_stmt_bind_param(
+                $stmt_log,
+                "is",
+                $id_user_login,
+                $aktivitas
+            );
+
+            mysqli_stmt_execute($stmt_log);
+            mysqli_stmt_close($stmt_log);
+
+            header("Location: tampil_tarif.php?status=tambah");
+            exit;
+
+        } else {
+
+            $error = 'Gagal menambahkan tarif: ' .
+                     mysqli_error($koneksi);
+        }
+
+        mysqli_stmt_close($stmt);
     }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
     <meta charset="UTF-8">
-    <title>Tambah Tarif Parkir</title>
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Tambah Tarif</title>
+
+    <link
+        rel="stylesheet"
+        href="../assets/css/form.css"
+    >
+
 </head>
+
 <body>
 
-    <h2>Tambah Tarif Parkir</h2>
+<div class="container">
 
-    <!-- Form menggunakan metode POST untuk mengirimkan data secara aman -->
-    <form action="" method="POST">
-        <label>Jenis Kendaraan:</label><br>
-        <input type="text" name="jenis_kendaraan" placeholder="Contoh: Motor / Mobil" required><br><br>
+    <div class="form-card">
 
-        <label>Tarif Per Jam (Rp):</label><br>
-        <input type="number" name="tarif_per_jam" placeholder="Contoh: 3000" required><br><br>
+        <div class="form-header">
 
-        <!-- Tombol untuk mengirimkan data form -->
-        <button type="submit" name="submit">Simpan</button>
-        <a href="tampil_tarif.php">Batal</a>
-    </form>
+            <h1>Tambah Tarif</h1>
+
+            <p>
+                Menambahkan tarif parkir kendaraan.
+            </p>
+
+        </div>
+
+
+        <div class="form-body">
+
+            <?php if ($error !== ''): ?>
+
+                <div class="form-alert form-alert-error">
+                    <?= htmlspecialchars($error) ?>
+                </div>
+
+            <?php endif; ?>
+
+
+            <form method="POST">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Jenis Kendaraan
+                        </label>
+
+                        <select
+                            name="jenis_kendaraan"
+                            required
+                        >
+
+                            <option value="">
+                                -- Pilih Kendaraan --
+                            </option>
+
+                            <option value="motor">
+                                Motor
+                            </option>
+
+                            <option value="mobil">
+                                Mobil
+                            </option>
+
+                            <option value="mini bus">
+                                Mini Bus
+                            </option>
+
+                            <option value="bus">
+                                Bus
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Tarif Per Jam
+                        </label>
+
+                        <input
+                            type="number"
+                            name="tarif_per_jam"
+                            min="1"
+                            value="<?= htmlspecialchars($_POST['tarif_per_jam'] ?? '') ?>"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <a
+                        href="tampil_tarif.php"
+                        class="btn btn-secondary"
+                    >
+                        Kembali
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Simpan Tarif
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
 
 </body>
 </html>

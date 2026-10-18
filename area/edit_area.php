@@ -1,65 +1,291 @@
 <?php
-// Memanggil file koneksi ke database
+session_start();
 include '../koneksi.php';
 
-// Mengambil ID area dari parameter URL (method GET)
-$id = $_GET['id'];
+if (!isset($_SESSION['id_user'])) {
+    header("Location: ../login.php");
+    exit;
+}
 
-// Query untuk mengambil data lama berdasarkan ID yang dipilih
-$result = mysqli_query($koneksi, "SELECT * FROM tb_area_parkir WHERE id_area = '$id'");
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header("Location: ../login.php");
+    exit;
+}
+
+$id_user_login = (int) $_SESSION['id_user'];
+
+$id_area = isset($_GET['id'])
+    ? (int) $_GET['id']
+    : 0;
+
+if ($id_area <= 0) {
+    header("Location: tampil_area_parkir.php");
+    exit;
+}
+
+/* Ambil data */
+
+$stmt = mysqli_prepare(
+    $koneksi,
+    "SELECT
+        id_area,
+        nama_area,
+        kapasitas,
+        terisi
+     FROM tb_area_parkir
+     WHERE id_area = ?
+     LIMIT 1"
+);
+
+mysqli_stmt_bind_param(
+    $stmt,
+    "i",
+    $id_area
+);
+
+mysqli_stmt_execute($stmt);
+
+$result = mysqli_stmt_get_result($stmt);
+
 $data = mysqli_fetch_assoc($result);
 
-// Memeriksa apakah tombol 'update' pada form sudah ditekan
-if (isset($_POST['update'])) {
-    // Mengambil nilai baru dari form
-    $nama_area = $_POST['nama_area'];
-    $kapasitas = $_POST['kapasitas'];
-    $terisi    = $_POST['terisi'];
+mysqli_stmt_close($stmt);
 
-    // Query SQL untuk memperbarui data berdasarkan ID area
-    $query = "UPDATE tb_area_parkir SET 
-                nama_area = '$nama_area', 
-                kapasitas = '$kapasitas', 
-                terisi = '$terisi' 
-              WHERE id_area = '$id'";
+if (!$data) {
+    header("Location: tampil_area_parkir.php");
+    exit;
+}
 
-    // Eksekusi query update ke database
-    if (mysqli_query($koneksi, $query)) {
-        // Jika berhasil, alihkan kembali ke halaman utama (index.php)
-        header("Location: tampil_area_parkir.php");
-        exit;
-    } else {
-        // Jika gagal, tampilkan pesan error
-        echo "Gagal memperbarui data: " . mysqli_error($koneksi);
+$error = '';
+
+/* Update */
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $nama_area = trim($_POST['nama_area'] ?? '');
+    $kapasitas = (int) ($_POST['kapasitas'] ?? 0);
+
+    if ($nama_area === '') {
+        $error = 'Nama area wajib diisi.';
     }
+
+    if ($error === '' && $kapasitas <= 0) {
+        $error = 'Kapasitas harus lebih dari 0.';
+    }
+
+    if ($error === '' && $kapasitas < (int) $data['terisi']) {
+        $error =
+            'Kapasitas tidak boleh lebih kecil dari jumlah kendaraan yang terisi.';
+    }
+
+    /* Cek nama area */
+
+    if ($error === '') {
+
+        $stmt = mysqli_prepare(
+            $koneksi,
+            "SELECT id_area
+             FROM tb_area_parkir
+             WHERE nama_area = ?
+             AND id_area != ?
+             LIMIT 1"
+        );
+
+        mysqli_stmt_bind_param(
+            $stmt,
+            "si",
+            $nama_area,
+            $id_area
+        );
+
+        mysqli_stmt_execute($stmt);
+
+        $result = mysqli_stmt_get_result($stmt);
+
+        if (mysqli_num_rows($result) > 0) {
+            $error = 'Nama area sudah digunakan.';
+        }
+
+        mysqli_stmt_close($stmt);
+    }
+
+    if ($error === '') {
+
+        $stmt = mysqli_prepare(
+            $koneksi,
+            "UPDATE tb_area_parkir
+             SET
+                nama_area = ?,
+                kapasitas = ?
+             WHERE id_area = ?"
+        );
+
+        mysqli_stmt_bind_param(
+            $stmt,
+            "sii",
+            $nama_area,
+            $kapasitas,
+            $id_area
+        );
+
+        if (mysqli_stmt_execute($stmt)) {
+
+            $aktivitas =
+                "Mengubah area parkir: " .
+                $nama_area;
+
+            $stmt_log = mysqli_prepare(
+                $koneksi,
+                "INSERT INTO tb_log_aktivitas
+                (id_user, aktivitas, waktu_aktivitas)
+                VALUES (?, ?, NOW())"
+            );
+
+            mysqli_stmt_bind_param(
+                $stmt_log,
+                "is",
+                $id_user_login,
+                $aktivitas
+            );
+
+            mysqli_stmt_execute($stmt_log);
+            mysqli_stmt_close($stmt_log);
+
+            mysqli_stmt_close($stmt);
+
+            header("Location: tampil_area_parkir.php?status=edit");
+            exit;
+        }
+
+        $error = 'Gagal mengubah area: ' .
+                 mysqli_error($koneksi);
+
+        mysqli_stmt_close($stmt);
+    }
+
+    $data['nama_area'] = $nama_area;
+    $data['kapasitas'] = $kapasitas;
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Edit Area Parkir</title>
+
+    <link
+        rel="stylesheet"
+        href="../assets/css/form.css"
+    >
+
 </head>
+
 <body>
 
-    <h2>Edit Area Parkir</h2>
+<div class="container">
 
-    <!-- Form edit, atribut value diisi dengan data lama dari database -->
-    <form action="" method="POST">
-        <label>Nama Area:</label><br>
-        <input type="text" name="nama_area" value="<?= $data['nama_area']; ?>" required><br><br>
+    <div class="form-card">
 
-        <label>Kapasitas:</label><br>
-        <input type="number" name="kapasitas" value="<?= $data['kapasitas']; ?>" required><br><br>
+        <div class="form-header">
 
-        <label>Terisi:</label><br>
-        <input type="number" name="terisi" value="<?= $data['terisi']; ?>" required><br><br>
+            <h1>Edit Area Parkir</h1>
 
-        <!-- Tombol submit untuk memperbarui data -->
-        <button type="submit" name="update">Update</button>
-        <a href="index.php">Batal</a>
-    </form>
+            <p>
+                Mengubah data area parkir.
+            </p>
+
+        </div>
+
+
+        <div class="form-body">
+
+            <?php if ($error !== ''): ?>
+
+                <div class="form-alert form-alert-error">
+                    <?= htmlspecialchars($error) ?>
+                </div>
+
+            <?php endif; ?>
+
+
+            <form method="POST">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Nama Area
+                        </label>
+
+                        <input
+                            type="text"
+                            name="nama_area"
+                            value="<?= htmlspecialchars($data['nama_area']) ?>"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Kapasitas
+                        </label>
+
+                        <input
+                            type="number"
+                            name="kapasitas"
+                            min="1"
+                            value="<?= htmlspecialchars($data['kapasitas']) ?>"
+                            required
+                        >
+
+                        <small class="form-help">
+                            Terisi saat ini:
+                            <?= (int) $data['terisi'] ?> kendaraan.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <a
+                        href="tampil_area_parkir.php"
+                        class="btn btn-secondary"
+                    >
+                        Kembali
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Simpan Perubahan
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
 
 </body>
 </html>

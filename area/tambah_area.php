@@ -1,54 +1,238 @@
 <?php
-// Memanggil file koneksi ke database
+session_start();
 include '../koneksi.php';
 
-// Memeriksa apakah tombol 'submit' pada form sudah ditekan
-if (isset($_POST['submit'])) {
-    // Mengambil nilai input dari form HTML
-    $nama_area = $_POST['nama_area'];
-    $kapasitas = $_POST['kapasitas'];
-    $terisi    = $_POST['terisi'];
+if (!isset($_SESSION['id_user'])) {
+    header("Location: ../login.php");
+    exit;
+}
 
-    // Query SQL untuk memasukkan data baru ke tabel tb_area_parkir
-    $query = "INSERT INTO tb_area_parkir (nama_area, kapasitas, terisi) VALUES ('$nama_area', '$kapasitas', '$terisi')";
-    
-    // Eksekusi query ke database
-    if (mysqli_query($koneksi, $query)) {
-        // Jika berhasil, alihkan halaman kembali ke tampil_area_parkir.php
-        header("Location: tampil_area_parkir.php");
-        exit;
-    } else {
-        // Jika gagal, tampilkan pesan error
-        echo "Gagal menambahkan data: " . mysqli_error($koneksi);
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header("Location: ../login.php");
+    exit;
+}
+
+$id_user_login = (int) $_SESSION['id_user'];
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $nama_area = trim($_POST['nama_area'] ?? '');
+    $kapasitas = (int) ($_POST['kapasitas'] ?? 0);
+
+    if ($nama_area === '') {
+        $error = 'Nama area wajib diisi.';
+    }
+
+    if ($error === '' && $kapasitas <= 0) {
+        $error = 'Kapasitas harus lebih dari 0.';
+    }
+
+    /* Cek nama area */
+
+    if ($error === '') {
+
+        $stmt = mysqli_prepare(
+            $koneksi,
+            "SELECT id_area
+             FROM tb_area_parkir
+             WHERE nama_area = ?
+             LIMIT 1"
+        );
+
+        mysqli_stmt_bind_param(
+            $stmt,
+            "s",
+            $nama_area
+        );
+
+        mysqli_stmt_execute($stmt);
+
+        $result = mysqli_stmt_get_result($stmt);
+
+        if (mysqli_num_rows($result) > 0) {
+            $error = 'Nama area sudah digunakan.';
+        }
+
+        mysqli_stmt_close($stmt);
+    }
+
+    if ($error === '') {
+
+        $terisi = 0;
+
+        $stmt = mysqli_prepare(
+            $koneksi,
+            "INSERT INTO tb_area_parkir
+            (
+                nama_area,
+                kapasitas,
+                terisi
+            )
+            VALUES (?, ?, ?)"
+        );
+
+        mysqli_stmt_bind_param(
+            $stmt,
+            "sii",
+            $nama_area,
+            $kapasitas,
+            $terisi
+        );
+
+        if (mysqli_stmt_execute($stmt)) {
+
+            $aktivitas =
+                "Menambahkan area parkir: " .
+                $nama_area;
+
+            $stmt_log = mysqli_prepare(
+                $koneksi,
+                "INSERT INTO tb_log_aktivitas
+                (id_user, aktivitas, waktu_aktivitas)
+                VALUES (?, ?, NOW())"
+            );
+
+            mysqli_stmt_bind_param(
+                $stmt_log,
+                "is",
+                $id_user_login,
+                $aktivitas
+            );
+
+            mysqli_stmt_execute($stmt_log);
+            mysqli_stmt_close($stmt_log);
+
+            header("Location: tampil_area_parkir.php?status=tambah");
+            exit;
+
+        } else {
+
+            $error = 'Gagal menambahkan area: ' .
+                     mysqli_error($koneksi);
+        }
+
+        mysqli_stmt_close($stmt);
     }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Tambah Area Parkir</title>
+
+    <link
+        rel="stylesheet"
+        href="../assets/css/form.css"
+    >
+
 </head>
+
 <body>
 
-    <h2>Tambah Area Parkir</h2>
+<div class="container">
 
-    <!-- Form menggunakan metode POST untuk mengalihkan inputan data secara aman -->
-    <form action="" method="POST">
-        <label>Nama Area:</label><br>
-        <input type="text" name="nama_area" required><br><br>
+    <div class="form-card">
 
-        <label>Kapasitas:</label><br>
-        <input type="number" name="kapasitas" required><br><br>
+        <div class="form-header">
 
-        <label>Terisi:</label><br>
-        <input type="number" name="terisi" value="0" required><br><br>
+            <h1>Tambah Area Parkir</h1>
 
-        <!-- Tombol untuk mengirimkan data form -->
-        <button type="submit" name="submit">Simpan</button>
-        <a href="tampil_area.php">Batal</a>
-    </form>
+            <p>
+                Menambahkan area parkir baru.
+            </p>
+
+        </div>
+
+
+        <div class="form-body">
+
+            <?php if ($error !== ''): ?>
+
+                <div class="form-alert form-alert-error">
+                    <?= htmlspecialchars($error) ?>
+                </div>
+
+            <?php endif; ?>
+
+
+            <form method="POST">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Nama Area
+                        </label>
+
+                        <input
+                            type="text"
+                            name="nama_area"
+                            value="<?= htmlspecialchars($_POST['nama_area'] ?? '') ?>"
+                            placeholder="Contoh: Area A"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Kapasitas
+                        </label>
+
+                        <input
+                            type="number"
+                            name="kapasitas"
+                            min="1"
+                            value="<?= htmlspecialchars($_POST['kapasitas'] ?? '') ?>"
+                            placeholder="Contoh: 50"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <a
+                        href="tampil_area_parkir.php"
+                        class="btn btn-secondary"
+                    >
+                        Kembali
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Simpan Area
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
 
 </body>
 </html>
