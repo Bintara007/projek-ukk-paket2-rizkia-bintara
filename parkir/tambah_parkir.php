@@ -18,7 +18,7 @@ if (!isset($koneksi) || !$koneksi) {
 |--------------------------------------------------------------------------
 */
 if (!isset($_SESSION['username']) || empty($_SESSION['username'])) {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
     exit;
 }
 
@@ -103,7 +103,7 @@ if ($role !== 'admin' && $role !== 'petugas') {
     | Kalau role tidak ditemukan, kembali ke login.
     */
     if ($role === '') {
-        header("Location: ../login.php");
+        header("Location: ../index.php");
         exit;
     }
 

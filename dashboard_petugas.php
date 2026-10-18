@@ -20,7 +20,7 @@ require_once 'koneksi.php';
 // ============================================================
 
 if (!isset($_SESSION['id_user'], $_SESSION['role'])) {
-    header('Location: login.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -29,7 +29,7 @@ if (!isset($_SESSION['id_user'], $_SESSION['role'])) {
 // ============================================================
 
 if ($_SESSION['role'] !== 'petugas') {
-    header('Location: login.php');
+    header('Location: index.php');
     exit;
 }
 

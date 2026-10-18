@@ -11,7 +11,7 @@ include '../koneksi.php';
    ========================================================= */
 
 if (!isset($_SESSION['id_user'])) {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
     exit;
 }
 
@@ -28,7 +28,7 @@ if ($role === 'admin') {
 } elseif ($role === 'owner') {
     $dashboard = '../dashboard_owner.php';
 } else {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
     exit;
 }
 

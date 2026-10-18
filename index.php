@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// login.php
+// index.php
 // Login Sistem Parkir
 // Status akun menggunakan nilai NUMERIC:
 // 1 = Aktif

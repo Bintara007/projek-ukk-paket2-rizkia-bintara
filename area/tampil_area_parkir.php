@@ -22,7 +22,7 @@ require_once '../koneksi.php';
 // ============================================================
 
 if (!isset($_SESSION['id_user'], $_SESSION['role'])) {
-    header('Location: ../login.php');
+    header('Location: ../index.php');
     exit;
 }
 
@@ -46,7 +46,7 @@ if ($role === 'admin') {
 
 } else {
 
-    header('Location: ../login.php');
+    header('Location: ../index.php');
     exit;
 }
 

@@ -9,7 +9,7 @@ include 'koneksi.php';
 |--------------------------------------------------------------------------
 */
 if (!isset($_SESSION['id_user'])) {
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -20,7 +20,7 @@ if (!isset($_SESSION['id_user'])) {
 |--------------------------------------------------------------------------
 */
 if (($_SESSION['role'] ?? '') !== 'owner') {
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 

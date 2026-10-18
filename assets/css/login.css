@@ -4,7 +4,7 @@
 |--------------------------------------------------------------------------
 | File ini khusus mengatur tampilan halaman login.
 |
-| CSS sengaja dipisahkan dari login.php agar:
+| CSS sengaja dipisahkan dari index.php agar:
 | 1. PHP lebih mudah dibaca.
 | 2. Tampilan lebih mudah diubah.
 | 3. CSS dapat dikelola secara terpisah.
