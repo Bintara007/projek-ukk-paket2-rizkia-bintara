@@ -5,7 +5,8 @@ Repositori ini berisi source code untuk **Aplikasi Pengelolaan Parkir** yang dik
 ---
 
 ## 🌐 Live Demo & Video Demo
-* 🔗 **Tautan Live Demo:** [Klik di sini untuk mencoba aplikasi](projeck-ukk-rizkia.site.je)
+* 🔗 **Tautan Live Demo:** [https://projeck-ukk-rizkia.site.je](https://projeck-ukk-rizkia.site.je)
+
 
 ---
 
