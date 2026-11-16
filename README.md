@@ -40,7 +40,7 @@ Proyek ini dikembangkan sebagai bagian dari **Uji Kompetensi Keahlian (UKK) Reka
 
 ### 🔗 Tautan Proyek
 
-- 🌍 **Live Demo:** [projek-ukk-rizkia.site.je](https://projek-ukk-rizkia.site.je/)
+- 🌍 **Live Demo:** [projek-ukk-rizkia.site.je](https://projeck-ukk-rizkia.site.je/)
 - 💻 **GitHub Repository:** [Bintara007/projek-ukk-paket2-rizkia-bintara](https://github.com/Bintara007/projek-ukk-paket2-rizkia-bintara)
 
 ---
