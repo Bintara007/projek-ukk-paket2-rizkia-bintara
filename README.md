@@ -274,4 +274,28 @@ Kode sumber dapat digunakan sebagai referensi pembelajaran dan pengembangan apli
 
 ---
 
-\<p align="center">   \<b>🅿️ Sistem Manajemen Parkir\</b>   \<br>   \<i>Digitalisasi Pengelolaan Parkir yang Lebih Efisien dan Terintegrasi.\</i>   \<br>\<br>   ⭐ Jika proyek ini bermanfaat, jangan lupa berikan Star pada repository GitHub! \</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge" alt="Status Active">
+  <img src="https://img.shields.io/badge/UKK-RPL%20Paket%202-blue?style=for-the-badge" alt="UKK RPL">
+</p>
+
+<h1 align="center">🅿️ SISTEM MANAJEMEN PARKIR</h1>
+<p align="center"><em>Smart Parking Management System</em></p>
+
+<p align="center">
+  Solusi modern, efisien, dan terintegrasi untuk pengelolaan sistem parkir kendaraan.
+</p>
+
+<p align="center">
+  ⭐ Jika proyek ini bermanfaat bagi Anda, jangan lupa berikan <strong>Star</strong> pada repository ini!
+</p>
+
+<p align="center">
+  <a href="https://github.com/Bintara007/projek-ukk-paket2-rizkia-bintara">
+    <img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" alt="View Repository">
+  </a>
+</p>
+
+<p align="center">
+  <sub>Developed with ❤️ for UKK Rekayasa Perangkat Lunak — Paket 2</sub>
+</p>
