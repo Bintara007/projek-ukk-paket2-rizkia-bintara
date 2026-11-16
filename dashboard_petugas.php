@@ -2,11 +2,6 @@
 // ============================================================
 // dashboard_petugas.php
 // Dashboard khusus Petugas
-// Menu petugas:
-// - Dashboard
-// - Data Parkir
-// - Transaksi
-// - Logout
 // ============================================================
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -16,19 +11,9 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once 'koneksi.php';
 
 // ============================================================
-// CEK LOGIN
+// CEK LOGIN & ROLE
 // ============================================================
-
-if (!isset($_SESSION['id_user'], $_SESSION['role'])) {
-    header('Location: index.php');
-    exit;
-}
-
-// ============================================================
-// CEK ROLE
-// ============================================================
-
-if ($_SESSION['role'] !== 'petugas') {
+if (!isset($_SESSION['id_user'], $_SESSION['role']) || $_SESSION['role'] !== 'petugas') {
     header('Location: index.php');
     exit;
 }
@@ -36,14 +21,11 @@ if ($_SESSION['role'] !== 'petugas') {
 // ============================================================
 // DATA USER LOGIN
 // ============================================================
-
-$nama_user = $_SESSION['nama_lengkap'] ?? 'Petugas';
-$username  = $_SESSION['username'] ?? 'petugas';
+$nama_user = $_SESSION['nama_lengkap'] ?? $_SESSION['username'] ?? 'Petugas';
 
 // ============================================================
 // FUNGSI MENGAMBIL JUMLAH DATA
 // ============================================================
-
 function jumlah_data_petugas($koneksi, $sql)
 {
     $result = mysqli_query($koneksi, $sql);
@@ -58,573 +40,287 @@ function jumlah_data_petugas($koneksi, $sql)
 }
 
 // ============================================================
-// TOTAL KENDARAAN YANG MASIH PARKIR
-// Kendaraan dianggap masih parkir jika belum memiliki
-// transaksi keluar.
+// STATISTIK PETUGAS
 // ============================================================
-
+/* Kendaraan yang masih parkir (belum memiliki transaksi keluar) */
 $total_parkir = jumlah_data_petugas(
     $koneksi,
-    "
-    SELECT COUNT(*) AS jumlah
-    FROM tb_parkir AS p
-    LEFT JOIN tb_transaksi AS t
+    "SELECT COUNT(*) AS jumlah
+     FROM tb_parkir AS p
+     LEFT JOIN tb_transaksi AS t
         ON p.id_parkir = t.id_parkir
-    WHERE t.id_parkir IS NULL
-    "
+     WHERE t.id_parkir IS NULL"
 );
 
-// ============================================================
-// TOTAL TRANSAKSI
-// ============================================================
-
+/* Total Transaksi */
 $total_transaksi = jumlah_data_petugas(
     $koneksi,
-    "
-    SELECT COUNT(*) AS jumlah
-    FROM tb_transaksi
-    "
+    "SELECT COUNT(*) AS jumlah FROM tb_transaksi"
 );
 
-// ============================================================
-// KENDARAAN MASUK HARI INI
-// ============================================================
-
+/* Kendaraan Masuk Hari Ini */
 $kendaraan_hari_ini = jumlah_data_petugas(
     $koneksi,
-    "
-    SELECT COUNT(*) AS jumlah
-    FROM tb_parkir
-    WHERE DATE(waktu_masuk) = CURDATE()
-    "
+    "SELECT COUNT(*) AS jumlah
+     FROM tb_parkir
+     WHERE DATE(waktu_masuk) = CURDATE()"
 );
 
-// ============================================================
-// TRANSAKSI HARI INI
-// ============================================================
-
+/* Transaksi Hari Ini */
 $transaksi_hari_ini = jumlah_data_petugas(
     $koneksi,
-    "
-    SELECT COUNT(*) AS jumlah
-    FROM tb_transaksi
-    WHERE DATE(waktu_keluar) = CURDATE()
-    "
+    "SELECT COUNT(*) AS jumlah
+     FROM tb_transaksi
+     WHERE DATE(waktu_keluar) = CURDATE()"
 );
-
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Petugas - PARKIR</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <!-- CSS DASHBOARD -->
+    <link rel="stylesheet" href="assets/css/dashboard.css?v=6">
 
-    <title>Dashboard Petugas - Sistem Parkir</title>
-
-    <!-- ======================================================
-         BOOTSTRAP ICONS
-         ====================================================== -->
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    >
-
-    <!-- ======================================================
-         CSS DASHBOARD
-         ====================================================== -->
-    <link
-        rel="stylesheet"
-        href="assets/css/dashboard.css"
-    >
-
+    <!-- BOOTSTRAP ICONS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
 <body>
 
-<div class="dashboard-wrapper">
+    <div class="dashboard-wrapper">
 
-    <!-- ======================================================
-         SIDEBAR
-         ====================================================== -->
-
-    <aside class="sidebar">
-
-        <!-- BRAND -->
-        <div class="brand">
-
-            <div class="brand-icon">
-                <i class="bi bi-car-front-fill"></i>
-            </div>
-
-            <div>
-
-                <div class="brand-title">
-                    Sistem Parkir
+        <!-- =====================================================
+             SIDEBAR
+             ===================================================== -->
+        <aside class="sidebar">
+            <!-- BRAND & TOMBOL CLOSE -->
+            <div class="brand-header">
+                <div class="brand" id="sidebarBrand" role="button" tabindex="0" aria-label="Buka sidebar" aria-expanded="false">
+                    <div class="brand-icon">
+                        <i class="bi bi-p-square-fill"></i>
+                    </div>
+                    <div>
+                        <div class="brand-title">PARKIR</div>
+                        <div class="brand-subtitle">Management System</div>
+                    </div>
                 </div>
 
-                <div class="brand-subtitle">
-                    Parking Management
-                </div>
-
+                <button type="button"
+                        class="sidebar-close"
+                        id="sidebarClose"
+                        aria-label="Tutup menu">
+                    <svg viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round">
+                        <path d="m18 6-12 12M6 6l12 12"/>
+                    </svg>
+                </button>
             </div>
 
-        </div>
+            <!-- ROLE -->
+            <div class="sidebar-role">
+                <span class="role-dot"></span>
+                Petugas
+            </div>
 
-
-        <!-- ROLE -->
-        <div class="sidebar-role">
-
-            <span class="role-dot"></span>
-
-            PETUGAS
-
-        </div>
-
-
-        <!-- MENU -->
-        <nav class="sidebar-menu">
-
-            <!-- DASHBOARD -->
-            <a
-                href="dashboard_petugas.php"
-                class="menu-item active"
-            >
-
-                <span class="menu-icon">
-                    <i class="bi bi-grid-1x2-fill"></i>
-                </span>
-
-                <span>
-                    Dashboard
-                </span>
-
-            </a>
-
-
-            <!-- DATA PARKIR -->
-            <a
-                href="parkir/tampil_parkir.php"
-                class="menu-item"
-            >
-
-                <span class="menu-icon">
-                    <i class="bi bi-car-front-fill"></i>
-                </span>
-
-                <span>
-                    Data Parkir
-                </span>
-
-            </a>
-
-
-            <!-- TRANSAKSI -->
-            <a
-                href="transaksi/tampil_transaksi.php"
-                class="menu-item"
-            >
-
-                <span class="menu-icon">
-                    <i class="bi bi-receipt"></i>
-                </span>
-
-                <span>
-                    Transaksi
-                </span>
-
-            </a>
-
-        </nav>
-
-
-        <!-- SIDEBAR BOTTOM -->
-        <div class="sidebar-bottom">
-
-            <a
-                href="logout.php"
-                class="logout-button"
-                onclick="return confirm('Apakah Anda yakin ingin keluar?');"
-            >
-
-                <span class="menu-icon">
-                    <i class="bi bi-box-arrow-right"></i>
-                </span>
-
-                <span>
-                    Logout
-                </span>
-
-            </a>
-
-        </div>
-
-    </aside>
-
-
-    <!-- ======================================================
-         MAIN CONTENT
-         ====================================================== -->
-
-    <main class="main-content">
-
-        <!-- ==================================================
-             TOPBAR
-             ================================================== -->
-
-        <header class="topbar">
-
-            <div>
-
-                <div class="breadcrumb">
-
-                    <i class="bi bi-house-door-fill"></i>
-
+            <!-- MENU -->
+            <nav class="sidebar-menu">
+                <a href="dashboard_petugas.php" class="menu-item active">
+                    <div class="menu-icon"><i class="bi bi-grid-1x2-fill"></i></div>
                     <span>Dashboard</span>
+                </a>
 
-                    <i class="bi bi-chevron-right"></i>
+                <a href="parkir/tampil_parkir.php" class="menu-item">
+                    <div class="menu-icon"><i class="bi bi-car-front-fill"></i></div>
+                    <span>Data Parkir</span>
+                </a>
 
-                    <span>Petugas</span>
+                <a href="transaksi/tampil_transaksi.php" class="menu-item">
+                    <div class="menu-icon"><i class="bi bi-receipt"></i></div>
+                    <span>Transaksi</span>
+                </a>
+            </nav>
 
+            <!-- LOGOUT -->
+            <div class="sidebar-bottom">
+                <a href="logout.php" class="logout-button">
+                    <i class="bi bi-box-arrow-right"></i>
+                    &nbsp; Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- OVERLAY SIDEBAR -->
+        <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+        <!-- =====================================================
+             MAIN CONTENT
+             ===================================================== -->
+        <main class="main-content">
+
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button type="button"
+                            class="sidebar-toggle"
+                            id="sidebarToggle"
+                            aria-label="Buka menu"
+                            aria-expanded="false">
+                        <svg viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round">
+                            <path d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+
+                    <div>
+                        <div class="breadcrumb">Dashboard / Petugas</div>
+                        <div class="dashboard-title">Dashboard Petugas</div>
+                    </div>
                 </div>
 
-                <h1 class="dashboard-title">
-                    Dashboard Petugas
-                </h1>
-
+                <!-- PROFILE -->
+                <div class="profile-box">
+                    <div class="profile-avatar">
+                        <?= strtoupper(substr($nama_user, 0, 1)); ?>
+                    </div>
+                    <div class="profile-info">
+                        <strong><?= htmlspecialchars($nama_user); ?></strong>
+                        <span>Petugas</span>
+                    </div>
+                </div>
             </div>
 
-
-            <!-- PROFILE -->
-            <div class="profile-box">
-
-                <div class="profile-avatar">
-
-                    <?= strtoupper(
-                        substr(
-                            $nama_user,
-                            0,
-                            1
-                        )
-                    ) ?>
-
-                </div>
-
-                <div class="profile-info">
-
-                    <strong>
-                        <?= htmlspecialchars($nama_user) ?>
-                    </strong>
-
-                    <span>
-                        Petugas
-                    </span>
-
-                </div>
-
-            </div>
-
-        </header>
-
-
-        <!-- ==================================================
-             WELCOME CARD
-             ================================================== -->
-
-        <section class="welcome-card">
-
-            <div>
-
-                <div class="welcome-label">
-                    SELAMAT DATANG
-                </div>
-
-                <h2>
-                    Halo, <?= htmlspecialchars($nama_user) ?> 👋
-                </h2>
-
+            <!-- WELCOME -->
+            <section class="welcome-card">
+                <div class="welcome-label">PANEL PETUGAS</div>
+                <h2>Selamat datang, <?= htmlspecialchars($nama_user); ?></h2>
                 <p>
                     Kelola kendaraan masuk, kendaraan keluar,
                     dan transaksi parkir melalui dashboard ini.
                 </p>
-
-            </div>
-
-
-            <div class="welcome-decoration">
-
-                <i class="bi bi-car-front-fill"></i>
-
-            </div>
-
-        </section>
-
-
-        <!-- ==================================================
-             STATISTIK
-             ================================================== -->
-
-        <section class="section">
-
-            <div class="section-heading">
-
-                <div>
-
-                    <h2>
-                        Ringkasan Parkir
-                    </h2>
-
-                    <p>
-                        Informasi aktivitas parkir
-                    </p>
-
+                <div class="welcome-decoration">
+                    <i class="bi bi-car-front-fill"></i>
                 </div>
-
-            </div>
-
-
-            <div class="stat-grid">
-
-                <!-- ==========================================
-                     PARKIR AKTIF
-                     ========================================== -->
-
-                <div class="stat-card blue">
-
-                    <div class="stat-icon">
-
-                        <i class="bi bi-car-front-fill"></i>
-
-                    </div>
-
-                    <div class="stat-content">
-
-                        <span>
-                            Parkir Aktif
-                        </span>
-
-                        <strong>
-                            <?= number_format($total_parkir, 0, ',', '.') ?>
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                <!-- ==========================================
-                     TOTAL TRANSAKSI
-                     ========================================== -->
-
-                <div class="stat-card green">
-
-                    <div class="stat-icon">
-
-                        <i class="bi bi-receipt"></i>
-
-                    </div>
-
-                    <div class="stat-content">
-
-                        <span>
-                            Total Transaksi
-                        </span>
-
-                        <strong>
-                            <?= number_format($total_transaksi, 0, ',', '.') ?>
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                <!-- ==========================================
-                     KENDARAAN MASUK HARI INI
-                     ========================================== -->
-
-                <div class="stat-card yellow">
-
-                    <div class="stat-icon">
-
-                        <i class="bi bi-box-arrow-in-right"></i>
-
-                    </div>
-
-                    <div class="stat-content">
-
-                        <span>
-                            Masuk Hari Ini
-                        </span>
-
-                        <strong>
-                            <?= number_format($kendaraan_hari_ini, 0, ',', '.') ?>
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                <!-- ==========================================
-                     TRANSAKSI HARI INI
-                     ========================================== -->
-
-                <div class="stat-card blue">
-
-                    <div class="stat-icon">
-
-                        <i class="bi bi-calendar-check"></i>
-
-                    </div>
-
-                    <div class="stat-content">
-
-                        <span>
-                            Transaksi Hari Ini
-                        </span>
-
-                        <strong>
-                            <?= number_format($transaksi_hari_ini, 0, ',', '.') ?>
-                        </strong>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- ==================================================
-             MENU CEPAT
-             HANYA DATA PARKIR DAN TRANSAKSI
-             ================================================== -->
-
-        <section class="section">
-
-            <div class="section-heading">
-
-                <div>
-
-                    <h2>
-                        Menu Petugas
-                    </h2>
-
-                    <p>
-                        Akses fitur yang tersedia untuk petugas
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="quick-grid">
-
-                <!-- ==========================================
-                     DATA PARKIR
-                     ========================================== -->
-
-                <a
-                    href="parkir/tampil_parkir.php"
-                    class="quick-card"
-                >
-
-                    <div class="quick-icon blue-icon">
-
-                        <i class="bi bi-car-front-fill"></i>
-
-                    </div>
-
+            </section>
+
+            <!-- STATISTIK -->
+            <section class="section">
+                <div class="section-heading">
                     <div>
+                        <h3>Ringkasan Parkir</h3>
+                        <p>Informasi aktivitas parkir saat ini</p>
+                    </div>
+                </div>
 
-                        <strong>
-                            Data Parkir
-                        </strong>
-
-                        <span>
-                            Kelola kendaraan yang sedang parkir
-                        </span>
-
+                <div class="stat-grid">
+                    <!-- PARKIR AKTIF -->
+                    <div class="stat-card blue">
+                        <div class="stat-icon"><i class="bi bi-car-front-fill"></i></div>
+                        <div class="stat-content">
+                            <span>Parkir Aktif</span>
+                            <strong><?= number_format($total_parkir, 0, ',', '.'); ?></strong>
+                            <small>Kendaraan sedang parkir</small>
+                        </div>
                     </div>
 
-                    <div class="arrow">
-
-                        <i class="bi bi-arrow-right"></i>
-
+                    <!-- TOTAL TRANSAKSI -->
+                    <div class="stat-card green">
+                        <div class="stat-icon"><i class="bi bi-receipt"></i></div>
+                        <div class="stat-content">
+                            <span>Total Transaksi</span>
+                            <strong><?= number_format($total_transaksi, 0, ',', '.'); ?></strong>
+                            <small>Seluruh transaksi</small>
+                        </div>
                     </div>
 
-                </a>
-
-
-                <!-- ==========================================
-                     TRANSAKSI
-                     ========================================== -->
-
-                <a
-                    href="transaksi/tampil_transaksi.php"
-                    class="quick-card"
-                >
-
-                    <div class="quick-icon green-icon">
-
-                        <i class="bi bi-receipt"></i>
-
+                    <!-- KENDARAAN MASUK HARI INI -->
+                    <div class="stat-card yellow">
+                        <div class="stat-icon"><i class="bi bi-box-arrow-in-right"></i></div>
+                        <div class="stat-content">
+                            <span>Masuk Hari Ini</span>
+                            <strong><?= number_format($kendaraan_hari_ini, 0, ',', '.'); ?></strong>
+                            <small>Kendaraan masuk hari ini</small>
+                        </div>
                     </div>
 
-                    <div>
-
-                        <strong>
-                            Transaksi
-                        </strong>
-
-                        <span>
-                            Lihat seluruh transaksi parkir
-                        </span>
-
+                    <!-- TRANSAKSI HARI INI -->
+                    <div class="stat-card blue">
+                        <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+                        <div class="stat-content">
+                            <span>Transaksi Hari Ini</span>
+                            <strong><?= number_format($transaksi_hari_ini, 0, ',', '.'); ?></strong>
+                            <small>Transaksi selesai hari ini</small>
+                        </div>
                     </div>
+                </div>
+            </section>
 
-                    <div class="arrow">
+            <!-- FOOTER -->
+            <footer class="dashboard-footer">
+                PARKIR Management System
+                <strong>• Petugas</strong>
+            </footer>
 
-                        <i class="bi bi-arrow-right"></i>
+        </main>
+    </div>
 
-                    </div>
+    <!-- =====================================================
+         JAVASCRIPT SIDEBAR
+         ===================================================== -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggle  = document.getElementById('sidebarToggle');
+        const close   = document.getElementById('sidebarClose');
+        const brand   = document.getElementById('sidebarBrand');
+        const overlay = document.getElementById('sidebarOverlay');
 
-                </a>
+        function openSidebar() {
+            document.body.classList.add('sidebar-open');
+            toggle?.setAttribute('aria-expanded', 'true');
+            brand?.setAttribute('aria-expanded', 'true');
+            brand?.setAttribute('aria-label', 'Tutup sidebar');
+            overlay?.setAttribute('aria-hidden', 'false');
+        }
 
-            </div>
+        function closeSidebar() {
+            document.body.classList.remove('sidebar-open');
+            toggle?.setAttribute('aria-expanded', 'false');
+            brand?.setAttribute('aria-expanded', 'false');
+            brand?.setAttribute('aria-label', 'Buka sidebar');
+            overlay?.setAttribute('aria-hidden', 'true');
+        }
 
-        </section>
+        function toggleSidebar() {
+            document.body.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
+        }
 
+        toggle?.addEventListener('click', openSidebar);
+        close?.addEventListener('click', closeSidebar);
+        overlay?.addEventListener('click', closeSidebar);
 
-        <!-- ==================================================
-             FOOTER
-             ================================================== -->
+        brand?.addEventListener('click', toggleSidebar);
+        brand?.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleSidebar();
+            }
+        });
 
-        <footer class="dashboard-footer">
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeSidebar();
+            }
+        });
 
-            <span>
-                © <?= date('Y') ?> Sistem Parkir
-            </span>
-
-            <span>
-                Login sebagai <strong>Petugas</strong>
-            </span>
-
-        </footer>
-
-    </main>
-
-</div>
-
+        document.querySelectorAll('.sidebar-menu .menu-item').forEach(function (item) {
+            item.addEventListener('click', closeSidebar);
+        });
+    });
+    </script>
 </body>
-
 </html>

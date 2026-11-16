@@ -21,10 +21,10 @@ date_default_timezone_set('Asia/Jakarta');
 // BAGIAN 2 - KONFIGURASI DATABASE
 // ============================================================
 
-$host = "localhost";
-$user = "root";
-$password = "";
-$database = "parkir";
+$host = "sql108.infinityfree.com";
+$user = "if0_43208612";
+$password = "PlUqTVgavDYEM";
+$database = "if0_43208612_parkir";
 
 
 // ============================================================
