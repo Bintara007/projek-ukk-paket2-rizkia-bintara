@@ -45,6 +45,17 @@ Proyek ini dikembangkan sebagai bagian dari **Uji Kompetensi Keahlian (UKK) Reka
 
 ---
 
+## 🎥 Demo Aplikasi
+
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/533bdfb7-77b2-42de-925e-9c5cb78c23fa" width="100%" controls></video>
+</p>
+<p align="center">
+  <em>Video Demonstrasi Penggunaan Sistem Manajemen Parkir </em>
+</p>
+
+---
+
 ## 🔑 Akun Demo
 
 Gunakan akun berikut untuk mencoba aplikasi berdasarkan masing-masing level hak akses.
@@ -52,8 +63,8 @@ Gunakan akun berikut untuk mencoba aplikasi berdasarkan masing-masing level hak 
 |       Role       | Username |  Password  |
 | :--------------: | :------: | :--------: |
 | 👑 Administrator |  `admin` | `admin123` |
-|     💼 Owner     |  `owner` | `owner123` |
-|    🛡️ Petugas   |   `p1`   |    `p1`    |
+|      💼 Owner    |  `owner` | `owner123` |
+|    🛡️ Petugas    |   `p1`   |    `p1`    |
 
 > **Catatan:** Akun di atas merupakan akun pengujian. Gunakan hanya untuk keperluan demonstrasi aplikasi.
 
@@ -62,9 +73,7 @@ Gunakan akun berikut untuk mencoba aplikasi berdasarkan masing-masing level hak 
 ## ✨ Fitur Utama
 
 ### 1. 👑 Administrator
-
 Administrator memiliki hak akses penuh untuk mengelola data dan konfigurasi sistem.
-
 - **Manajemen Pengguna:** Mengelola akun pengguna sistem.
 - **Manajemen Member:** Menambah, melihat, mengubah, dan menghapus data member.
 - **Manajemen Area Parkir:** Mengatur area dan kapasitas parkir.
@@ -74,9 +83,7 @@ Administrator memiliki hak akses penuh untuk mengelola data dan konfigurasi sist
 - **Log Aktivitas:** Memantau aktivitas pengguna dalam sistem.
 
 ### 2. 💼 Owner
-
 Owner memiliki akses untuk memantau aktivitas operasional dan performa bisnis parkir.
-
 - Dashboard ringkasan operasional.
 - Monitoring pendapatan keseluruhan.
 - Informasi pendapatan harian.
@@ -85,9 +92,7 @@ Owner memiliki akses untuk memantau aktivitas operasional dan performa bisnis pa
 - Pemantauan performa operasional.
 
 ### 3. 🛡️ Petugas
-
 Petugas bertanggung jawab terhadap proses operasional kendaraan di area parkir.
-
 - **Kendaraan Masuk:** Mencatat kendaraan yang memasuki area parkir.
 - **Pembuatan Transaksi:** Membuat data parkir aktif secara otomatis.
 - **Kendaraan Keluar:** Memproses kendaraan yang meninggalkan area parkir.
@@ -115,9 +120,7 @@ Petugas bertanggung jawab terhadap proses operasional kendaraan di area parkir.
 Ikuti langkah-langkah berikut untuk menjalankan aplikasi di lingkungan lokal.
 
 ### 1. Persiapan
-
 Pastikan perangkat sudah memiliki:
-
 - [XAMPP](https://www.apachefriends.org/)
 - PHP
 - MySQL / MariaDB
@@ -125,177 +128,6 @@ Pastikan perangkat sudah memiliki:
 - Git (opsional)
 
 ### 2. Clone Repository
-
 Buka terminal atau Command Prompt, kemudian jalankan:
-
 ```bash
-git clone https://github.com/Bintara007/projek-ukk-paket2-rizkia-bintara.git
-```
-
-### 3. Pindahkan Folder Proyek
-
-Pindahkan folder hasil clone ke direktori:
-
-```text
-C:\xampp\htdocs\parkir
-```
-
-### 4. Jalankan XAMPP
-
-Buka XAMPP Control Panel, kemudian aktifkan:
-
-- Apache
-- MySQL
-
-### 5. Buat Database
-
-1. Buka phpMyAdmin melalui `http://localhost/phpmyadmin`.
-2. Buat database baru dengan nama `db_parkir`.
-3. Pilih database yang telah dibuat.
-4. Import file SQL yang tersedia di repository proyek.
-5. Tunggu hingga proses import selesai.
-
-> Sesuaikan nama database dengan konfigurasi koneksi aplikasi apabila berbeda.
-
-### 6. Konfigurasi Database
-
-Buka file `koneksi.php`, kemudian sesuaikan konfigurasi koneksi database:
-
-```php
-<?php
-
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "db_parkir";
-
-$koneksi = mysqli_connect($host, $user, $pass, $db);
-
-if (!$koneksi) {
-    die("Koneksi database gagal: " . mysqli_connect_error());
-}
-?>
-```
-
-> Pastikan struktur variabel dan koneksi disesuaikan dengan implementasi `koneksi.php` pada repository.
-
-### 7. Jalankan Aplikasi
-
-Buka browser dan akses alamat berikut:
-
-```text
-http://localhost/parkir
-```
-
-Aplikasi siap digunakan setelah konfigurasi database berhasil.
-
----
-
-## 🔐 Sistem Hak Akses
-
-Aplikasi menggunakan pembagian hak akses berdasarkan tiga jenis pengguna.
-
-| Modul              | Administrator | Owner |      Petugas     |
-| ------------------ | :-----------: | :---: | :--------------: |
-| Dashboard          |       ✅       |   ✅   |         ✅        |
-| Manajemen User     |       ✅       |   ❌   |         ❌        |
-| Manajemen Member   |       ✅       |   ❌   |         ❌        |
-| Manajemen Area     |       ✅       |   ❌   |         ❌        |
-| Manajemen Tarif    |       ✅       |   ❌   |         ❌        |
-| Kendaraan Masuk    |       ❌       |   ❌   |         ✅        |
-| Kendaraan Keluar   |       ❌       |   ❌   |         ✅        |
-| Monitoring Parkir  |       ✅       |   ✅   |         ✅        |
-| Riwayat Transaksi  |       ✅       |   ✅   | Sesuai hak akses |
-| Laporan Pendapatan |       ❌       |   ✅   |         ❌        |
-| Log Aktivitas      |       ✅       |   ❌   |         ❌        |
-
----
-
-## 📂 Struktur Dokumentasi
-
-Dokumentasi proyek mencakup beberapa bagian utama:
-
-- Deskripsi dan tujuan pengembangan aplikasi.
-- Kebutuhan sistem dan teknologi.
-- Perancangan database.
-- Implementasi antarmuka dan fungsionalitas.
-- Pengujian fitur berdasarkan hak akses.
-- Dokumentasi penggunaan aplikasi.
-
----
-
-## 🧪 Pengujian Sistem
-
-Pengujian dilakukan untuk memastikan setiap fitur berjalan sesuai dengan kebutuhan sistem.
-
-Beberapa skenario pengujian meliputi:
-
-- Pengujian login berhasil dan gagal.
-- Pengujian pembatasan hak akses setiap role.
-- Pengujian pengelolaan data pengguna dan member.
-- Pengujian pengaturan tarif dan area parkir.
-- Pengujian proses kendaraan masuk.
-- Pengujian proses kendaraan keluar.
-- Pengujian perhitungan biaya parkir.
-- Pengujian pencatatan transaksi.
-- Pengujian dashboard dan laporan pendapatan.
-
----
-
-## 🎯 Tujuan Pengembangan
-
-Pengembangan aplikasi ini bertujuan untuk:
-
-1. Mendigitalisasi proses administrasi dan operasional parkir.
-2. Mempermudah pencatatan kendaraan masuk dan keluar.
-3. Meminimalkan kesalahan pencatatan transaksi.
-4. Mempermudah pengelolaan data member, tarif, dan area parkir.
-5. Menyediakan informasi transaksi dan pendapatan secara terstruktur.
-6. Menerapkan sistem pengelolaan pengguna berdasarkan hak akses.
-
----
-
-## 👨‍💻 Pengembang
-
-**Proyek Uji Kompetensi Keahlian (UKK)**
-
-Bidang Keahlian: Rekayasa Perangkat Lunak (RPL)
-Paket Kompetensi: Paket 2
-
-Repository: [GitHub Project](https://github.com/Bintara007/projek-ukk-paket2-rizkia-bintara)
-
----
-
-## 📄 Lisensi dan Penggunaan
-
-Proyek ini dikembangkan untuk memenuhi kebutuhan Uji Kompetensi Keahlian (UKK) Rekayasa Perangkat Lunak Paket 2.
-
-Kode sumber dapat digunakan sebagai referensi pembelajaran dan pengembangan aplikasi serupa dengan tetap memperhatikan hak cipta serta ketentuan penggunaan masing-masing komponen yang digunakan.
-
----
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge" alt="Status Active">
-  <img src="https://img.shields.io/badge/UKK-RPL%20Paket%202-blue?style=for-the-badge" alt="UKK RPL">
-</p>
-
-<h1 align="center">🅿️ SISTEM MANAJEMEN PARKIR</h1>
-<p align="center"><em>Smart Parking Management System</em></p>
-
-<p align="center">
-  Solusi modern, efisien, dan terintegrasi untuk pengelolaan sistem parkir kendaraan.
-</p>
-
-<p align="center">
-  ⭐ Jika proyek ini bermanfaat bagi Anda, jangan lupa berikan <strong>Star</strong> pada repository ini!
-</p>
-
-<p align="center">
-  <a href="https://github.com/Bintara007/projek-ukk-paket2-rizkia-bintara">
-    <img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" alt="View Repository">
-  </a>
-</p>
-
-<p align="center">
-  <sub>Developed with ❤️ for UKK Rekayasa Perangkat Lunak — Paket 2</sub>
-</p>
+git clone [https://github.com/Bintara007/projek-ukk-paket2-rizkia-bintara.git](https://github.com/Bintara007/projek-ukk-paket2-rizkia-bintara.git)
